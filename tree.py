@@ -120,7 +120,20 @@ def build_decision_tree(dec_tree, node_values):
     return tree_output
 
 
-def run_decision_tree():
+def create_simple_tree(x, y):
+    """Create simple decision tree.
+
+    Inputs:
+        x: list of featureset lists
+        y: list of classifications
+    Output:
+        Decision tree trained by x and y
+    """
+    dec_tree = tree.DecisionTreeClassifier()
+    return dec_tree.fit(x, y)
+
+
+def main():
     """Main function.
 
     First runs a simple usage example.
@@ -173,10 +186,10 @@ def run_decision_tree():
     # print iris.data[:10]
     # print iris.target
 
-    # initialize and train the decidion tree.
+    # initialize and train the decision tree.
+    # this time using the helper function create_simple_tree
     # again in real life would split into train/test
-    dt_iris = tree.DecisionTreeClassifier()
-    dt_iris = dt_iris.fit(iris.data, iris.target)
+    dt_iris = create_simple_tree(iris.data, iris.target)
 
     # calculate the node values based in iris.data
     node_values = calculate_node_values(dt_iris, iris.data)
@@ -191,4 +204,4 @@ def run_decision_tree():
 
 
 if __name__ == "__main__":
-    run_decision_tree()
+    main()

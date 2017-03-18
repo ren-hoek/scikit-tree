@@ -19,22 +19,22 @@ from sklearn.datasets import load_iris
 from sklearn import tree
 
 
-def calculate_node_values(dec_tree, sample):
+def calculate_node_values(t, s):
     """Construct counts of cases at each node.
 
     Inputs:
-    dec_tree = the trained decision tree
-    sample = the cases to pass through the tree
+    t: the trained decision tree
+    s: the cases to pass through the tree
 
     Outputs:
-    An dictionary with key of node_id and value of the
+    A dictionary with key of node_id and value of the
     node case count based on provided sample
     e.g. node_values[0] = 150
     150 cases in node[0] (the root node)
     """
     # the method .decision_path calculate the path through
     # tree for every case in sample
-    node_indicator = dec_tree.decision_path(sample)
+    node_indicator = t.decision_path(s)
 
     # the method .apply calculates the node id of the
     # leaf node (terminal node) for each case in sample
@@ -42,7 +42,7 @@ def calculate_node_values(dec_tree, sample):
     # leave_id = dt_iris.apply(iris.data)
 
     node_sum = []
-    for j in xrange(len(sample)):
+    for j in xrange(len(s)):
         node_index = node_indicator.indices[
             node_indicator.indptr[j]:
             node_indicator.indptr[j + 1]
@@ -55,24 +55,25 @@ def calculate_node_values(dec_tree, sample):
     return node_values
 
 
-def build_decision_tree(dec_tree, node_values):
+def build_decision_tree(t, v, d=''):
     """
     Build a string decision tree.
 
     Inputs:
-    dec_tree = the trained decision tree
-    node_values = the node counts for a particular sample
+    t: the trained decision tree
+    v: the node counts for a particular sample
+    d: the data dictionary
 
     Output:
     Returns a string representation of the decision tree
     with counts at each node based on values supplied in
     node_values
     """
-    n_nodes = dec_tree.tree_.node_count
-    children_left = dec_tree.tree_.children_left
-    children_right = dec_tree.tree_.children_right
-    feature = dec_tree.tree_.feature
-    threshold = dec_tree.tree_.threshold
+    n_nodes = t.tree_.node_count
+    children_left = t.tree_.children_left
+    children_right = t.tree_.children_right
+    feature = t.tree_.feature
+    threshold = t.tree_.threshold
 
     node_depth = np.zeros(shape=n_nodes)
 
@@ -100,20 +101,24 @@ def build_decision_tree(dec_tree, node_values):
                 "%snode=%s leaf node (%s).\n"
                 % (int(node_depth[i]) * "\t",
                     i,
-                    node_values[i])
+                    v[i])
             )
         else:
+            if d != '':
+                category = d.keys()[int(feature[i]) + 1]
+            else:
+                category = feature[i]
             tree_output += (
-                "%snode=%s test node (%s): go to node %s if X[:, %s] "
+                "%snode=%s test node (%s): go to node %s if %s "
                 "<= %ss else to "
                 "node %s.\n"
                 % (int(node_depth[i]) * "\t",
                     i,
-                    node_values[i],
+                    v[i],
                     children_left[i],
-                    feature[i],
+                    category,
                     threshold[i],
-                    children_right[i],
+                    children_right[i]
                    )
                 )
 
@@ -137,7 +142,7 @@ def main():
     """Main function.
 
     First runs a simple usage example.
-    Then runs and display a tree based on example data
+    Then runs and displays a tree based on example data
     from scikit-learn
     """
     """
@@ -151,7 +156,6 @@ def main():
     contains a single list with the class for each case
     e.g. 0 = Bad, 1 = Good or whatever the classification is
     """
-
     X = [[1, 1, 1], [1, 0, 0], [0, 0, 1]]
     Y = [1, 0, 1]
 

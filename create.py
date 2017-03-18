@@ -6,6 +6,7 @@ modelling.
 
 import random
 from collections import OrderedDict
+from sklearn.preprocessing import OneHotEncoder
 import tree as tr
 
 
@@ -40,7 +41,7 @@ def tail(a):
 def create_variable(v):
     """Create variable dictionary.
 
-    Inputs:
+    Input:
         v: list of variable values
     Output:
         Dictionary of key-value pairs for variable
@@ -70,7 +71,7 @@ def create_data_dictionary(h, v):
 def create_data(d, r):
     """Create sample data.
 
-    Input:
+    Inputs:
     d: data dictionary for the dataset
     r: number of rows of data required
     Output:
@@ -94,8 +95,9 @@ def create_data(d, r):
 
 def main():
     """Main program."""
-    n_cases = 50
+    n_cases = 10
     headers = ["category", "sex", "age", "region", "health"]
+    types = ['o','o','o','o','o']
     values = [
         ["success", "fail"],
         ["male", "female"],
@@ -106,10 +108,23 @@ def main():
 
     data_dict = create_data_dictionary(headers, values)
     sample_data = create_data(data_dict, n_cases)
+    ft = sample_data[1]
+    print ft
+
+    """
+    enc = OneHotEncoder()
+    categorical = [[x[0], x[2], x[3]] for x in ft]
+    enc.fit(categorical)
+    print enc.transform(categorical).toarray()
+    """
 
     sample_tree = tr.create_simple_tree(sample_data[1], sample_data[0])
     node_values = tr.calculate_node_values(sample_tree, sample_data[1])
-    training_tree = tr.build_decision_tree(sample_tree, node_values)
+    training_tree = tr.build_decision_tree(
+        sample_tree,
+        node_values,
+        data_dict
+    )
 
     print training_tree
 

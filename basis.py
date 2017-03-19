@@ -15,15 +15,24 @@ def invert_list(a):
     return inverted_list
 
 
-def create_true_false(a):
-    """docstring."""
+def create_false_true(a):
+    """Create a list of false.
+
+    Pair up the categories to produce mutually exclusive combinations
+
+    Input:
+        a: single list of all potential category combinations
+    Output:
+        paired up list of the mutually exclusive category combinations
+        (every value must belong to one of the 2 elements)
+    """
     i = 0
-    true_false = list()
+    false_true = list()
     len_a = len(a)
     while i <= len_a/2:
-        true_false.append([a[i], a[len_a - i - 1]])
+        false_true.append([a[len_a - i - 1], a[i]])
         i += 1
-    return true_false
+    return false_true
 
 
 def combine_vectors(b, n):
@@ -82,37 +91,89 @@ def create_cat_splits(b):
     Input:
         a: list of the categorical variable values
     Output:
-        a list of length 2 lists containg the combinations
+        a list of length 2 lists containng the combinations
     """
     vectors = lin_comb_basis(b)
-    return create_true_false(vectors)
+    return create_false_true(vectors)
+
+
+def create_basis(n):
+    """Create basis vectors.
+
+    Create a list of n-dimensional basis vectors
+
+    Input:
+        n: number of dimensions
+    Output:
+        list of basis vectors
+    """
+    dim = xrange(n)
+    basis = [[(j == i) * 1 for j in dim] for i in dim]
+    return basis
+
+
+def convert_to_cat(v, b):
+    """Convert numerical category.
+
+    Inputs:
+        v: the value of the categorical variable
+        b: the set of basis false/true vectors
+    Output:
+        a list of the basis false/true vectors v belongs to
+    """
+    return [(x[1][v] == 1) * 1 for x in b]
+
+
+def create_categories(n):
+    """Create mutually exclusive categorical features.
+
+    Creates a list of the mutually exclusive categories
+    using a basis of dimension n
+
+    Inputs:
+        n: dimensionality of the basis
+    Output:
+        a list of length 2 lists containng the combinations
+    """
+    return create_cat_splits(create_basis(n))
+
+
+def create_cat_features(v, n):
+    """Create categorical features.
+
+    Creates a list of the categorical features for each
+    element of v
+
+    Inputs:
+        v: the data as single column numerical list
+        n: no of categories in v
+    Outputs:
+        a list containing the list of the binary features the element
+        belongs to
+    """
+    return [convert_to_cat(x, create_categories(n)) for x in v]
 
 
 def main():
     """Main function.
 
-    Demo of how create_cat_splits works
+    Demo of how create_cat_features works
     """
-    basis = [
-        [1, 0, 0, 0],
-        [0, 1, 0, 0],
-        [0, 0, 1, 0],
-        [0, 0, 0, 1]
-        ]
+    basis_4 = create_basis(4)
 
-    basis2 = [
-        [1, 0, 0, 0, 0],
-        [0, 1, 0, 0, 0],
-        [0, 0, 1, 0, 0],
-        [0, 0, 0, 1, 0],
-        [0, 0, 0, 0, 1]
-    ]
+    basis_5 = create_basis(5)
 
-    for i in create_cat_splits(basis):
+    for i in create_cat_splits(basis_4):
         print i
 
-    for i in create_cat_splits(basis2):
+    for i in create_cat_splits(basis_5):
         print i
+
+    print convert_to_cat(2, create_categories(3))
+    print convert_to_cat(1, create_categories(4))
+
+    print create_categories(3)
+    print create_cat_features([0, 1], 2)
 
     return True
 

@@ -105,19 +105,30 @@ def build_decision_tree(t, v, d=''):
             )
         else:
             if d != '':
-                category = d.keys()[int(feature[i]) + 1]
+                print d.keys()
+                cat_dict = d[int(feature[i]) + 1]
+                category = cat_dict['header']
+                if d[int(feature[i]) + 1]['type'] == 'c':
+                    threshold_value = d[int(feature[i]) + 1]['values'][0]
+                    comp_operator = "=="
+                else:
+                    threshold_value = threshold[i]
+                    comp_operator = "<="
             else:
                 category = feature[i]
+                threshold_value = threshold[i]
+                comp_operator = "<="
             tree_output += (
                 "%snode=%s test node (%s): go to node %s if %s "
-                "<= %ss else to "
+                "%s %s else to "
                 "node %s.\n"
                 % (int(node_depth[i]) * "\t",
                     i,
                     v[i],
                     children_left[i],
                     category,
-                    threshold[i],
+                    comp_operator,
+                    threshold_value,
                     children_right[i]
                    )
                 )

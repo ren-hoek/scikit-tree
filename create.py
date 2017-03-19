@@ -6,8 +6,9 @@ modelling.
 
 import random
 from collections import OrderedDict
-from sklearn.preprocessing import OneHotEncoder
+# from sklearn.preprocessing import OneHotEncoder
 import tree as tr
+import basis as bs
 
 
 def head(a):
@@ -46,48 +47,116 @@ def create_variable(v):
     Output:
         Dictionary of key-value pairs for variable
     """
-    variable_dict = {}
+    variable_dict = dict()
     for i, entry in enumerate(v):
         variable_dict[i] = entry
     return variable_dict
 
 
-def create_data_dictionary(h, v):
+def create_data_dictionary(h, v, t):
     """Create data dictionary.
 
     Inputs:
         h: list of column headers
         v: list of lists of values in same order as h
+        t: list of variable types in same order as h:
+            'o' ordinal,
+            'c' categorical
     Output:
         Ordered Dictionary of headers each entry being the
         key - value pairs for each variable
     """
     data_dict = OrderedDict()
     for i, entry in enumerate(h):
-        data_dict[entry] = create_variable(v[i])
+        data_dict[entry] = dict()
+        data_dict[entry]["type"] = t[i]
+        data_dict[entry]["length"] = len(v[i])
+        data_dict[entry]["values"] = create_variable(v[i])
+        if t[i] == 'c':
+            data_dict[entry]["categories"] = bs.create_categories(len(v[i]))
+        else:
+            data_dict[entry]["categories"] = []
+
     return data_dict
+
+
+def convert_value(v, d):
+    """docstring."""
+    if d == []:
+        return [v]
+    else:
+        return [x for x in bs.convert_to_cat(v, d)]
+
+
+def convert_dictionary(d):
+    """docstring."""
+    cat_dict = OrderedDict()
+    k = 0
+    for entry in d:
+        if d[entry]["categories"]:
+            for x in d[entry]["categories"]:
+                cat_dict[k] = dict()
+                cat_dict[k]['header'] = entry
+                cat_dict[k]['type'] = 'c'
+                cat_dict[k]['values'] = dict()
+                for i, y in enumerate(x):
+                    cat_dict[k]['values'][i] = ' '.join(
+                        [(z * d[entry]["values"][j]) for j, z in enumerate(y)]
+                    ).strip()
+                k += 1
+        else:
+            cat_dict[k] = dict()
+            # cat_dict[k] = d[entry]
+            cat_dict[k]['header'] = entry
+            cat_dict[k]['type'] = 'o'
+            cat_dict[k]['values'] = d[entry]["values"]
+
+            k += 1
+    return cat_dict
 
 
 def create_data(d, r):
     """Create sample data.
 
     Inputs:
-    d: data dictionary for the dataset
-    r: number of rows of data required
+        d: data dictionary for the dataset
+        r: number of rows of data required
     Output:
-    2 element list:
-    1st element: length r list of classification
-    2st element: length r list of features
-    using dictionary d
+        2 element list using dictionary d:
+            1st element: length r list of classification
+            2st element: length r list of features
     """
     data_features = list()
     data_class = list()
     for row in xrange(r):
         features = list()
         for entry in d:
-            features.append(
-                random.randint(0, max(d[entry].keys()))
-            )
+            value = random.randint(0, max(d[entry]["values"].keys()))
+            for x in convert_value(value, d[entry]["categories"]):
+                features.append(x)
+        data_class.append(head(features))
+        data_features.append(tail(features))
+    return [data_class, data_features]
+
+
+def create_data_2(d, r):
+    """Create sample data.
+
+    Inputs:
+        d: data dictionary for the dataset
+        r: number of rows of data required
+    Output:
+        2 element list using dictionary d:
+            1st element: length r list of classification
+            2st element: length r list of features
+    """
+    data_features = list()
+    data_class = list()
+    for row in xrange(r):
+        features = list()
+        for entry in d:
+            value = random.randint(0, max(d[entry]["values"].keys()))
+            features.append(value)
         data_class.append(head(features))
         data_features.append(tail(features))
     return [data_class, data_features]
@@ -95,9 +164,9 @@ def create_data(d, r):
 
 def main():
     """Main program."""
-    n_cases = 10
+    n_cases = 100
     headers = ["category", "sex", "age", "region", "health"]
-    types = ['o','o','o','o','o']
+    types = ['o', 'c', 'o', 'c', 'c']
     values = [
         ["success", "fail"],
         ["male", "female"],
@@ -106,10 +175,11 @@ def main():
         ["good", "average", "poor"]
     ]
 
-    data_dict = create_data_dictionary(headers, values)
-    sample_data = create_data(data_dict, n_cases)
-    ft = sample_data[1]
-    print ft
+    data_dict = create_data_dictionary(headers, values, types)
+    print data_dict
+    cat_data_dict = convert_dictionary(data_dict)
+    print cat_data_dict
+    sample_data = create_data_2(cat_data_dict, n_cases)
 
     """
     enc = OneHotEncoder()
@@ -123,7 +193,7 @@ def main():
     training_tree = tr.build_decision_tree(
         sample_tree,
         node_values,
-        data_dict
+        cat_data_dict
     )
 
     print training_tree

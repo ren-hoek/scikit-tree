@@ -89,7 +89,17 @@ def convert_value(v, d):
 
 
 def convert_dictionary(d):
-    """docstring."""
+    """Convert dictionary to binary.
+
+    Converts the data dictionary to contain a set of
+    binary variables for each categorical variable in
+    the datset
+    Input:
+        d: dictionary with categorical single variables
+    Output:
+        dictionary with categorical variable as a set of binary
+        variables
+    """
     cat_dict = OrderedDict()
     k = 0
     for entry in d:
@@ -106,7 +116,6 @@ def convert_dictionary(d):
                 k += 1
         else:
             cat_dict[k] = dict()
-            # cat_dict[k] = d[entry]
             cat_dict[k]['header'] = entry
             cat_dict[k]['type'] = 'o'
             cat_dict[k]['values'] = d[entry]["values"]
@@ -116,30 +125,6 @@ def convert_dictionary(d):
 
 
 def create_data(d, r):
-    """Create sample data.
-
-    Inputs:
-        d: data dictionary for the dataset
-        r: number of rows of data required
-    Output:
-        2 element list using dictionary d:
-            1st element: length r list of classification
-            2st element: length r list of features
-    """
-    data_features = list()
-    data_class = list()
-    for row in xrange(r):
-        features = list()
-        for entry in d:
-            value = random.randint(0, max(d[entry]["values"].keys()))
-            for x in convert_value(value, d[entry]["categories"]):
-                features.append(x)
-        data_class.append(head(features))
-        data_features.append(tail(features))
-    return [data_class, data_features]
-
-
-def create_data_2(d, r):
     """Create sample data.
 
     Inputs:
@@ -176,17 +161,8 @@ def main():
     ]
 
     data_dict = create_data_dictionary(headers, values, types)
-    print data_dict
     cat_data_dict = convert_dictionary(data_dict)
-    print cat_data_dict
-    sample_data = create_data_2(cat_data_dict, n_cases)
-
-    """
-    enc = OneHotEncoder()
-    categorical = [[x[0], x[2], x[3]] for x in ft]
-    enc.fit(categorical)
-    print enc.transform(categorical).toarray()
-    """
+    sample_data = create_data(cat_data_dict, n_cases)
 
     sample_tree = tr.create_simple_tree(sample_data[1], sample_data[0])
     node_values = tr.calculate_node_values(sample_tree, sample_data[1])

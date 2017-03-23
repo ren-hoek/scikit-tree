@@ -105,7 +105,6 @@ def build_decision_tree(t, v, d=''):
             )
         else:
             if d != '':
-                print d.keys()
                 cat_dict = d[int(feature[i]) + 1]
                 category = cat_dict['header']
                 if d[int(feature[i]) + 1]['type'] == 'c':
